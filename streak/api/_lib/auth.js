@@ -12,6 +12,17 @@ function getEncryptionKey() {
 }
 
 /**
+ * Determine if request is truly HTTPS (always false on localhost to allow cookies)
+ */
+export function isRequestSecure(req) {
+  const host = req.headers?.['x-forwarded-host'] || req.headers?.host || '';
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    return false;
+  }
+  return req.headers?.['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production';
+}
+
+/**
  * Encrypt a JSON serializable payload with AES-256-GCM
  */
 export function encryptPayload(data) {
@@ -82,7 +93,7 @@ export function serializeSessionCookie(payload, isSecure = false) {
 export function serializeClearSessionCookie() {
   return cookie.serialize(COOKIE_NAME, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'lax',
     path: '/',
     maxAge: 0,
@@ -108,7 +119,7 @@ export function serializeStateCookie(state, isSecure = false) {
 export function serializeClearStateCookie() {
   return cookie.serialize(STATE_COOKIE_NAME, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'lax',
     path: '/',
     maxAge: 0,
@@ -117,7 +128,6 @@ export function serializeClearStateCookie() {
 
 /**
  * Helper to get the authenticated session from a request.
- * Enforces ALLOWED_GITHUB_USERNAME check if configured.
  */
 export function getSession(req) {
   const cookies = parseCookies(req);

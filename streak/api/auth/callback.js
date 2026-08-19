@@ -1,4 +1,4 @@
-import { verifyState, serializeSessionCookie, serializeClearStateCookie } from '../_lib/auth.js';
+import { verifyState, serializeSessionCookie, serializeClearStateCookie, isRequestSecure } from '../_lib/auth.js';
 import { getOctokit, bootstrapRepo } from '../_lib/github.js';
 
 export default async function handler(req, res) {
@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // Parse query params (supports both standard Node and Vercel/Vite req)
+  // Parse query params
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const code = req.query?.code || urlObj.searchParams.get('code');
   const state = req.query?.state || urlObj.searchParams.get('state');
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     }
 
     // 5. Encrypt session cookie & clear state cookie
-    const isSecure = req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production';
+    const isSecure = isRequestSecure(req);
     const sessionCookie = serializeSessionCookie({
       accessToken,
       username,
@@ -104,6 +104,7 @@ export default async function handler(req, res) {
     const clearStateCookie = serializeClearStateCookie();
 
     res.setHeader('Set-Cookie', [sessionCookie, clearStateCookie]);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.writeHead(302, { Location: '/' });
     res.end();
 

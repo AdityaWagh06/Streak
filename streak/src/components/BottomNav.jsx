@@ -1,11 +1,11 @@
 import React from 'react';
-import { Sword, Grid3X3, UserCheck, SlidersHorizontal } from 'lucide-react';
+import { Sword, Calendar, UserCheck, Settings } from 'lucide-react';
 
 const TABS = [
   { id: 'today', label: 'Quests', icon: Sword },
-  { id: 'history', label: 'Dungeons', icon: Grid3X3 },
+  { id: 'history', label: 'History', icon: Calendar },
   { id: 'stats', label: 'Status', icon: UserCheck },
-  { id: 'settings', label: 'System', icon: SlidersHorizontal },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }) {
