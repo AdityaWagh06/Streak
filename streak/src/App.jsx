@@ -208,12 +208,12 @@ export default function App() {
     if (isDevMode) {
       localStorage.removeItem('streak_dev_mode');
       setIsDevMode(false);
+      setIsAuthenticated(false);
+      setUser(null);
+      setActiveTab('today');
     } else {
-      await logout();
+      window.location.href = '/api/auth/logout';
     }
-    setIsAuthenticated(false);
-    setUser(null);
-    setActiveTab('today');
   };
 
   if (isLoadingAuth) {
