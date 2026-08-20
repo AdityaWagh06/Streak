@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Zap, Sword, Shield, AlertCircle } from 'lucide-react';
+import { Github, Zap, Sword, AlertCircle, Info } from 'lucide-react';
 
 export default function LoginView() {
   const [errorMsg, setErrorMsg] = useState(null);
+  const [errorDetails, setErrorDetails] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -11,13 +12,20 @@ export default function LoginView() {
 
     if (authError) {
       if (authError === 'missing_github_client_id' || authError === 'missing_server_credentials') {
-        setErrorMsg('GitHub OAuth credentials are missing in .env.local.');
+        setErrorMsg('GitHub OAuth credentials missing');
+        setErrorDetails('Please ensure GITHUB_CLIENT_ID & GITHUB_CLIENT_SECRET are set in Vercel environment variables.');
       } else if (authError === 'unauthorized_user') {
-        setErrorMsg(`User @${attemptedUser || 'you'} is not authorized.`);
+        setErrorMsg(`Access Restricted for @${attemptedUser || 'user'}`);
+        setErrorDetails('This app currently restricts access using ALLOWED_GITHUB_USERNAME. To allow any account to log in, clear ALLOWED_GITHUB_USERNAME in your Vercel project settings.');
       } else if (authError === 'csrf_state_mismatch') {
-        setErrorMsg('Security check timed out. Please tap Sign In again.');
+        setErrorMsg('Session security timeout');
+        setErrorDetails('Please click "SIGN IN WITH GITHUB" again to start a fresh login session.');
+      } else if (authError.includes('token_exchange') || authError.includes('bad_verification_code')) {
+        setErrorMsg('GitHub Authentication Failed');
+        setErrorDetails('GitHub authorization code expired or invalid. Please try logging in again.');
       } else {
-        setErrorMsg(`Authentication issue: ${authError}`);
+        setErrorMsg('Login Issue Encountered');
+        setErrorDetails(`${authError}. Make sure the GitHub account has a verified primary email address.`);
       }
     }
   }, []);
@@ -44,11 +52,18 @@ export default function LoginView() {
           </p>
         </div>
 
-        {/* Error Alert if any */}
+        {/* Enhanced Error Alert */}
         {errorMsg && (
-          <div className="bg-rose-950/60 border border-rose-500/40 text-rose-300 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2 text-left font-mono">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="bg-rose-950/60 border border-rose-500/40 text-rose-200 px-4 py-3 rounded-2xl text-xs text-left space-y-1 font-sans shadow-md animate-fade-in">
+            <div className="flex items-center gap-2 text-rose-300 font-mono font-bold">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+            {errorDetails && (
+              <p className="text-[11px] text-slate-300 pl-6 leading-relaxed">
+                {errorDetails}
+              </p>
+            )}
           </div>
         )}
 
